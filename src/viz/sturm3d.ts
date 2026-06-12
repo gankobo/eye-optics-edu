@@ -60,20 +60,24 @@ export function createSturmScene(container: HTMLElement): SturmSceneAPI {
   // 斜め俯瞰の Perspective カメラ。眼球中心 (z≈14mm) を見る。
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
   const lookTarget = new THREE.Vector3(14, 0, 0);
-  // lookTarget からの基本カメラオフセット（横長レイアウト時の見え方）
+  // lookTarget からの基本カメラオフセット（横長レイアウト時の標準位置）
   const baseCameraOffset = new THREE.Vector3(14, 14, 36);
-  // 縦長レイアウト（aspect < BASE_ASPECT）になるとカメラを引いて水平視野を広く取る。
-  // BASE_ASPECT は「現状のカメラ配置で眼球モデル全体が水平に収まる最小アスペクト比」。
-  const BASE_ASPECT = 1.4;
+  const baseDistance = baseCameraOffset.length();
+  // 確保したい水平視野サイズ [mm]（眼球全体＋マーカーが入る幅）
+  const TARGET_H_MM = 34;
   const MAX_PULLBACK = 2.5;
+  const FOV_TAN_HALF = Math.tan((35 * Math.PI) / 180 / 2);
 
   const resize = () => {
     const w = container.clientWidth;
     const h = container.clientHeight;
     renderer.setSize(w, h, false);
-    const aspect = w / h;
+    const aspect = Math.max(w / h, 0.3);
     camera.aspect = aspect;
-    const scale = aspect < BASE_ASPECT ? Math.min(BASE_ASPECT / aspect, MAX_PULLBACK) : 1;
+    // 「TARGET_H_MM が水平に収まる最小カメラ距離」を計算し、ベース距離より大きければ
+    // その比率でカメラを後退させる。広いアスペクトでは scale=1 で従来通りの見え方を維持。
+    const minDistance = TARGET_H_MM / (2 * FOV_TAN_HALF * aspect);
+    const scale = Math.min(Math.max(1, minDistance / baseDistance), MAX_PULLBACK);
     camera.position.copy(lookTarget).add(baseCameraOffset.clone().multiplyScalar(scale));
     camera.lookAt(lookTarget);
     camera.updateProjectionMatrix();

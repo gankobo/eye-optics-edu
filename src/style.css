@@ -84,9 +84,6 @@ header h1 { margin: 0; font-size: 1.2rem; font-weight: 700; }
   grid-template-columns: 1fr 340px;
   min-height: 0;
 }
-@media (max-width: 880px) {
-  .layout { grid-template-columns: 1fr; }
-}
 
 .viewport {
   position: relative;
@@ -101,6 +98,35 @@ header h1 { margin: 0; font-size: 1.2rem; font-weight: 700; }
   border-left: 1px solid var(--border);
   padding: 1rem 1.2rem;
   overflow-y: auto;
+}
+
+/* モバイル縦長: 3D ビューを上部固定、パラメータパネルを下部スクロールに */
+@media (max-width: 880px) {
+  body { overflow: hidden; }
+  #app {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .viewport {
+    height: 45vh;
+    height: 45dvh;
+    min-height: 0;
+    flex-shrink: 0;
+  }
+  .panel {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .controls h2 {
