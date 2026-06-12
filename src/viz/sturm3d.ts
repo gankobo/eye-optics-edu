@@ -55,22 +55,30 @@ export function createSturmScene(container: HTMLElement): SturmSceneAPI {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setClearColor(0xf6f7fb);
 
-  const resize = () => {
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    render();
-  };
-
   const scene = new THREE.Scene();
 
   // 斜め俯瞰の Perspective カメラ。眼球中心 (z≈14mm) を見る。
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
-  camera.position.set(28, 14, 36); // mm 単位
   const lookTarget = new THREE.Vector3(14, 0, 0);
-  camera.lookAt(lookTarget);
+  // lookTarget からの基本カメラオフセット（横長レイアウト時の見え方）
+  const baseCameraOffset = new THREE.Vector3(14, 14, 36);
+  // 縦長レイアウト（aspect < BASE_ASPECT）になるとカメラを引いて水平視野を広く取る。
+  // BASE_ASPECT は「現状のカメラ配置で眼球モデル全体が水平に収まる最小アスペクト比」。
+  const BASE_ASPECT = 1.4;
+  const MAX_PULLBACK = 2.5;
+
+  const resize = () => {
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    renderer.setSize(w, h, false);
+    const aspect = w / h;
+    camera.aspect = aspect;
+    const scale = aspect < BASE_ASPECT ? Math.min(BASE_ASPECT / aspect, MAX_PULLBACK) : 1;
+    camera.position.copy(lookTarget).add(baseCameraOffset.clone().multiplyScalar(scale));
+    camera.lookAt(lookTarget);
+    camera.updateProjectionMatrix();
+    render();
+  };
 
   // ライト（マーカーをほんの少し立体的に見せるため）
   scene.add(new THREE.AmbientLight(0xffffff, 0.85));
