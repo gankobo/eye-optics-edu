@@ -21,7 +21,6 @@ import {
   refractionToZernike,
   defocusDioptersToZernike,
   buildPupilFunction,
-  computePSF,
   computePsfFromRefraction,
 } from '../psf';
 
