@@ -1,20 +1,22 @@
 /**
- * Phase 3 用 UI: 眼内媒質置換と水晶体の有無。
+ * Phase 4 用 UI: 眼内媒質置換と無水晶体眼。
  *
  * 状態モデル:
  *   - medium: 硝子体腔の媒質（標準/ガス/シリコンオイル）
- *   - phakic: 水晶体の有無
+ *   - phakic: 水晶体の有無（プリセットで一括設定、UI で個別変更はしない）
  *   - objectDistanceCM, objectAtInfinity, pupilDiameterMM: Phase 1 と同様
  *
  * UI:
- *   - プリセットボタン群: 1 クリックで medium と phakic を一括設定
- *   - 水晶体トグル: phakic のみ変更（プリセットと独立に効く）
- *     例「無水晶体プリセット → トグルON」で標準眼に戻る、
- *        「シリコンオイル → トグルOFF」で無水晶体+シリコンオイル（逆転近視化）。
+ *   - プリセットボタン群（4 種）のみ。媒質と水晶体有無は組合せが固定。
+ *     1. 標準眼（硝子体・水晶体あり）
+ *     2. ガス充填（硝子体ガス置換・水晶体あり）
+ *     3. シリコンオイル（硝子体オイル置換・水晶体あり）
+ *     4. 無水晶体眼（硝子体・水晶体除去後）
  *
  * 教育意図:
- *   媒質変化は水晶体後面の屈折率差の変化として現れる。水晶体除去と媒質置換の
- *   組合せで、屈折変化の向きが切り替わることを体験させる。
+ *   媒質変化は水晶体後面の屈折率差の変化として現れる。臨床的に意味のある
+ *   4 プリセットに絞り、文献的裏付けの弱い自由組合せ（例: 無水晶体＋オイル）は
+ *   UI から除外している。
  */
 
 import type { TamponadeMedium } from '../optics/types';
@@ -59,7 +61,7 @@ export function mountControlsPhase3(container: HTMLElement): Controls3API {
       <h2>パラメータ</h2>
 
       <fieldset class="objfield">
-        <legend>媒質プリセット</legend>
+        <legend>眼の状態プリセット</legend>
         <div class="presets">
           ${PRESETS.map(
             (p) => `
@@ -69,11 +71,6 @@ export function mountControlsPhase3(container: HTMLElement): Controls3API {
             </button>`,
           ).join('')}
         </div>
-      </fieldset>
-
-      <fieldset class="objfield">
-        <legend>水晶体</legend>
-        <label><input id="c-phakic" type="checkbox" ${state.phakic ? 'checked' : ''}> 水晶体あり（外すと無水晶体）</label>
       </fieldset>
 
       <label class="slider">
@@ -103,9 +100,9 @@ export function mountControlsPhase3(container: HTMLElement): Controls3API {
       <details class="howto">
         <summary>操作ヒント</summary>
         <ul>
-          <li>標準 → ガス: 水晶体後面の屈折率差が消え、強い遠視化</li>
+          <li>標準 → ガス: 水晶体後面の屈折率差が大きく増加し、強い近視化</li>
           <li>標準 → シリコンオイル: 屈折率差が縮小し、遠視化</li>
-          <li>水晶体ありシリコンオイルの状態で水晶体を外す → 角膜が高屈折率液面を作り近視化に逆転</li>
+          <li>標準 → 無水晶体眼: 水晶体（≈22 D）が消失し、強い遠視化</li>
         </ul>
       </details>
     </div>
@@ -116,7 +113,6 @@ export function mountControlsPhase3(container: HTMLElement): Controls3API {
   const sPupil = $<HTMLInputElement>('#s-pupil3');
   const sObj = $<HTMLInputElement>('#s-obj3');
   const cInf = $<HTMLInputElement>('#c-inf3');
-  const cPhakic = $<HTMLInputElement>('#c-phakic');
 
   const rPupil = $<HTMLElement>('#r-pupil3');
   const rObj = $<HTMLElement>('#r-obj3');
@@ -142,17 +138,10 @@ export function mountControlsPhase3(container: HTMLElement): Controls3API {
       if (!p) return;
       state.medium = p.medium;
       state.phakic = p.phakic;
-      cPhakic.checked = state.phakic;
       updatePresetActive();
       emit();
     });
   }
-
-  cPhakic.addEventListener('change', () => {
-    state.phakic = cPhakic.checked;
-    updatePresetActive();
-    emit();
-  });
 
   sPupil.addEventListener('input', () => {
     state.pupilDiameterMM = parseFloat(sPupil.value);
