@@ -28,12 +28,16 @@ export function mountPhaseToric(viewport: HTMLElement, panel: HTMLElement): Phas
     const Lobj = s.objectAtInfinity ? 0 : -N.air / (s.objectDistanceCM / 100);
     const pupilDiameter = s.pupilDiameterMM / 1000;
 
+    // UI スライダ「IOL マーカー軸」は実臨床のマーカーが指す向き（IOL 弱主経線方向）。
+    // power vector 合成と 3D 描画は強主経線軸を期待するので +90° して渡す。
+    const iolStrongAxisDeg = (s.iolAxisDeg + 90) % 180;
+
     const toric = computeToric({
       corneaSteepRadiusMM: s.corneaSteepRadiusMM,
       corneaFlatRadiusMM: s.corneaFlatRadiusMM,
       corneaAxisDeg: s.corneaAxisDeg,
       iolCylinderD: s.iolCylinderD,
-      iolAxisDeg: s.iolAxisDeg,
+      iolAxisDeg: iolStrongAxisDeg,
       axialLengthMM: s.axialLengthMM,
     });
 
@@ -53,7 +57,7 @@ export function mountPhaseToric(viewport: HTMLElement, panel: HTMLElement): Phas
       pupilDiameter,
       corneaMarker: { axisRad: (s.corneaAxisDeg * Math.PI) / 180 },
       iolMarker: {
-        axisRad: (s.iolAxisDeg * Math.PI) / 180,
+        axisRad: (iolStrongAxisDeg * Math.PI) / 180,
         zMM: IOL_Z_MM,
       },
     });

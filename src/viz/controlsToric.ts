@@ -223,7 +223,9 @@ export function mountToricControls(container: HTMLElement): ToricControlsAPI {
   };
 
   bPerp.addEventListener('click', () => {
-    setIolAxis(state.corneaAxisDeg + 90);
+    // 「IOL マーカー軸」スライダは見た目のマーカー方向と一致するため、
+    // 角膜強主経線（赤タブ）に合わせるには角膜軸そのものを設定する。
+    setIolAxis(state.corneaAxisDeg);
   });
 
   return {
