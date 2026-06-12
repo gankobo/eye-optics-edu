@@ -95,6 +95,11 @@ export function mountControlsPhase3(container: HTMLElement): Controls3API {
         <em>計算中…</em>
       </div>
 
+      <p class="hint" style="margin-top:0.6rem;line-height:1.55;border-left:3px solid var(--accent);padding:0.3rem 0.6rem;background:rgba(0,0,0,0.04)">
+        ※ 水晶体は厚さ 3.6 mm・屈折率 1.42、前面半径 +10 mm／後面半径 −6 mm の凸メニスカスとして、
+        実効屈折力 ≈ <b>22 D</b>（無調節）と仮定しています。媒質置換の効果は<b>水晶体後面での屈折率差変化</b>として現れます。
+      </p>
+
       <details class="howto">
         <summary>操作ヒント</summary>
         <ul>
