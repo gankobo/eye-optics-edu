@@ -13,6 +13,7 @@ import { buildAstigmaticBundle } from '../optics/astigmatism';
 import { computeToric } from '../optics/toric';
 import { createSturmScene } from './sturm3d';
 import { mountToricControls, type ToricState } from './controlsToric';
+import { createPsfOverlay } from './psfOverlay';
 import type { PhaseHandle } from './phase1';
 
 // IOL の z 位置（水晶体前面に相当）。eyeModel.ts の DEFAULTS.acdMM と整合。
@@ -20,6 +21,7 @@ const IOL_Z_MM = 3.6;
 
 export function mountPhaseToric(viewport: HTMLElement, panel: HTMLElement): PhaseHandle {
   const scene = createSturmScene(viewport);
+  const psfOverlay = createPsfOverlay(viewport);
   const controls = mountToricControls(panel);
 
   const apply = (s: ToricState) => {
@@ -56,6 +58,18 @@ export function mountPhaseToric(viewport: HTMLElement, panel: HTMLElement): Phas
       },
     });
 
+    // PSF オーバーレイ: 残余乱視 (Power Vector) から生成。
+    // toric.residualSCA: { M, C(≤0 マイナス円柱), axisRad(強主経線軸) }
+    // PSF は弱主経線方向の sphere + マイナス円柱量 + マイナス円柱軸 (= 強主経線+90°) を期待。
+    const accomDemandD = s.objectAtInfinity ? 0 : 100 / s.objectDistanceCM;
+    const steepAxisDeg = (toric.residualSCA.axisRad * 180) / Math.PI;
+    psfOverlay.update({
+      sphereD: toric.flatRefractionD + accomDemandD,
+      cylinderD: toric.residualSCA.C,
+      axisDeg: (steepAxisDeg + 90) % 180,
+      pupilDiameterMM: s.pupilDiameterMM,
+    });
+
     // 読み出し
     const cornealCylAbs = Math.abs(toric.corneaCylinderD);
     const residualCylAbs = Math.abs(toric.residualSCA.C);
@@ -80,6 +94,7 @@ export function mountPhaseToric(viewport: HTMLElement, panel: HTMLElement): Phas
 
   return {
     dispose() {
+      psfOverlay.dispose();
       scene.dispose();
       viewport.innerHTML = '';
       panel.innerHTML = '';

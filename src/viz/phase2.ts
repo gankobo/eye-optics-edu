@@ -7,10 +7,12 @@ import { ocularRefraction } from '../optics/paraxial';
 import { makeEye } from '../optics/eyeModel';
 import { createSturmScene } from './sturm3d';
 import { mountSturmControls, type SturmState } from './controlsSturm';
+import { createPsfOverlay } from './psfOverlay';
 import type { PhaseHandle } from './phase1';
 
 export function mountPhase2(viewport: HTMLElement, panel: HTMLElement): PhaseHandle {
   const scene = createSturmScene(viewport);
+  const psfOverlay = createPsfOverlay(viewport);
   const controls = mountSturmControls(panel);
 
   const apply = (s: SturmState) => {
@@ -38,8 +40,18 @@ export function mountPhase2(viewport: HTMLElement, panel: HTMLElement): PhaseHan
     const flatRef = ocularRefraction(
       makeEye({ axialLengthMM: s.axialLengthMM, cornealRadiusMM: s.flatRadiusMM }),
     );
-    const cylinder = steepRef - flatRef; // 円柱度数（強と弱の差）
+    const cylinder = steepRef - flatRef; // 円柱度数（強と弱の差、マイナス円柱表記で ≤ 0）
     const sphericalEq = bundle.sturm.sphericalEquivalent;
+
+    // PSF オーバーレイ: マイナス円柱表記で渡す。axis は強主経線の +90°（弱主経線方向）。
+    // 視距離が有限のときは無調節モデルで実効デフォーカスを +1/d D シフトさせる。
+    const accomDemandD = s.objectAtInfinity ? 0 : 100 / s.objectDistanceCM;
+    psfOverlay.update({
+      sphereD: flatRef + accomDemandD,
+      cylinderD: cylinder,
+      axisDeg: (s.axisDeg + 90) % 180,
+      pupilDiameterMM: s.pupilDiameterMM,
+    });
 
     const antMM = bundle.sturm.anteriorFocalLineZ * 1000;
     const postMM = bundle.sturm.posteriorFocalLineZ * 1000;
@@ -64,6 +76,7 @@ export function mountPhase2(viewport: HTMLElement, panel: HTMLElement): PhaseHan
 
   return {
     dispose() {
+      psfOverlay.dispose();
       scene.dispose();
       viewport.innerHTML = '';
       panel.innerHTML = '';
