@@ -1,0 +1,22 @@
+# 依存パッケージ・ビルド成果物（再生成可能）
+node_modules/
+dist/
+
+# ログ
+*.log
+npm-debug.log*
+
+# OS が自動生成するファイル
+.DS_Store
+Thumbs.db
+
+# エディタ・IDE の個人設定
+.vscode/
+.idea/
+
+# Claude Code のメタデータ
+.claude/
+
+# ローカルの会話メモ・草案（教材本体ではない）
+Phase α toric IOL.txt
+docs/copied_conversation_toricIOL.txt
