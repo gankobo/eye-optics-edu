@@ -71,7 +71,7 @@ export function mountToricControls(container: HTMLElement): ToricControlsAPI {
       </label>
 
       <h2>toric IOL</h2>
-      <p style="color: var(--muted); font-size: 0.78rem; margin: 0.2rem 0 0.6rem; line-height: 1.45;">※ IOL の球面度数は「角膜と眼軸長に合わせて常に最適選定された」前提です（ユーザーは円柱量と軸のみ操作）。</p>
+      <p style="color: var(--muted); font-size: 0.78rem; margin: 0.2rem 0 0.6rem; line-height: 1.45;">※ IOL の球面度数は「角膜と眼軸長に合わせて常に（等価球面で）0 D になるように最適選定された」前提です（ユーザーは円柱量と軸のみ操作）。</p>
 
       <label class="slider">
         <span class="slabel"><span class="sw" style="background:#ff9933"></span>IOL 円柱度数 <b id="r-icyl">${state.iolCylinderD.toFixed(2)}</b> D</span>
